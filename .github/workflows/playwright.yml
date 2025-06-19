@@ -1,0 +1,83 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest # ubuntu-latest ya incluye OpenJDK, que Allure necesita.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5' # Asegúrate de que esta sea la versión de Python que usas
+
+      # --- Paso para instalar Java (JDK) - Necesario para Allure ---
+      - name: Instalar Java (JDK) para Allure
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin' # O 'adopt', 'zulu', etc.
+          java-version: '17'      # Versión de Java requerida por Allure (se recomienda 11 o superior para Allure 2.x)
+
+      # --- Paso para instalar Allure Commandline Tool ---
+      - name: Instalar Allure Commandline Tool
+        run: |
+          # Descarga e instala Allure CLI
+          # Se recomienda revisar la página de releases de Allure para la última versión
+          # https://github.com/allure-framework/allure2/releases
+          ALLURE_VERSION="2.29.0" # ¡ACTUALIZA ESTA VERSIÓN REGULARMENTE!
+          curl -sL https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz -o allure-commandline.tgz
+          sudo tar -xzf allure-commandline.tgz -C /opt
+          echo "/opt/allure-${ALLURE_VERSION}/bin" >> $GITHUB_PATH # Añade Allure al PATH
+          allure --version # Verifica la instalación
+
+      - name: Instalar dependencias de Python
+        run: |
+          python -m pip install --upgrade pip
+          # Asegúrate de que 'allure-pytest' esté en requirements.txt
+          pip install -r requirements.txt 
+      
+      - name: Instalar navegadores de Playwright
+        run: playwright install --with-deps
+
+      # --- Ejecutar pruebas con Pytest y generar resultados para Allure ---
+      - name: Ejecutar pruebas de Playwright y generar resultados de Allure
+        run: |
+          # Asegúrate de que las rutas a tus tests sean correctas dentro de 'at-practice/test/'
+          # y que 'allure-pytest' esté instalado.
+          # Los resultados crudos de Allure se guardarán en test/reportes/allure-results
+          pytest at-practice/test/test_login.py \
+                 at-practice/test/test_home.py \
+                 at-practice/test/test_producto.py \
+                 at-practice/test/test_carrito.py \
+                 at-practice/test/test_menu.py \
+                 --alluredir=at-practice/test/reportes/allure-results # Ruta ajustada
+        # Si tus tests esperan estar en la raíz del proyecto, puedes necesitar 'cd at-practice' antes de pytest
+        # Si tus tests usan rutas relativas dentro de 'at-practice', asegúrate de que el contexto de pytest sea el adecuado.
+        # Por simplicidad, asumimos que pytest puede encontrar los tests con la ruta absoluta desde la raíz del repo.
+
+      # --- Paso para generar el reporte HTML de Allure ---
+      - name: Generar Reporte Allure HTML
+        run: |
+          # Genera el reporte HTML desde los resultados crudos
+          # El reporte final se guardará en test/reportes/allure-report
+          allure generate at-practice/test/reportes/allure-results --clean -o at-practice/test/reportes/allure-report
+      
+      # --- Subir el reporte de Allure como un artefacto ---
+      - name: Subir Reporte Allure
+        uses: actions/upload-artifact@v4
+        if: always() # Siempre sube el reporte, incluso si las pruebas fallan
+        with:
+          name: playwright-allure-report
+          path: at-practice/test/reportes/allure-report/ # Sube el directorio completo del reporte Allure
+          retention-days: 30
