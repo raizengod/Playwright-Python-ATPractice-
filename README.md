@@ -33,11 +33,13 @@ Sigue estos pasos para configurar y ejecutar las pruebas en tu entorno local:
 3. **Instalar la Herramienta de Línea de Comandos de Allure:**
 * **En macOS/Linux (usando Homebrew):**
     ```bash
-    brew install allure'''
+    brew install allure
+    '''
 
 * **En Windows (usando Scoop):**
     ```bash
-    scoop install allure'''
+    scoop install allure
+    '''
 
 * **Descarga manual:** Descarga la última versión desde **[Allure GitHub Releases](https://github.com/allure-framework/allure2/releases)** y añade el directorio ```bin``` a tu ```PATH```.
 
@@ -105,7 +107,7 @@ AT-PRACTICE/
 │   └── workflows/
 │       └── playwright.yml         # Configuración de GitHub Actions para CI
 ├── mv_ATP/
-├── swag_labs/                 # Contenedor principal del código fuente
+├── at-preactice/                 # Contenedor principal del código fuente
 │   ├── pages/                 # Implementación del Page Object Model (POM)
 │   │   ├── __init__.py
 │   │   ├── base_page.py       # Clase base con funciones globales
