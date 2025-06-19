@@ -34,12 +34,10 @@ Sigue estos pasos para configurar y ejecutar las pruebas en tu entorno local:
 * **En macOS/Linux (usando Homebrew):**
     ```bash
     brew install allure
-    '''
 
 * **En Windows (usando Scoop):**
     ```bash
     scoop install allure
-    '''
 
 * **Descarga manual:** Descarga la última versión desde **[Allure GitHub Releases](https://github.com/allure-framework/allure2/releases)** y añade el directorio ```bin``` a tu ```PATH```.
 
