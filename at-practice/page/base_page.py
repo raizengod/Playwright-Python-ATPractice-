@@ -24,7 +24,7 @@ class Funciones_Globales:
         nombre_archivo = self._generar_nombre_archivo_con_timestamp(nombre_base)
         ruta_completa = os.path.join(directorio, f"{nombre_archivo}.jpg")
         self.page.screenshot(path=ruta_completa)
-        print(f"Captura guardada en: {ruta_completa}") # Para ver dónde se guardó
+        print(f"📸 Captura guardada en: {ruta_completa}") # Para ver dónde se guardó
         
     #4- unción basica para tiempo de espera que espera recibir el parametro tiempo
     #En caso de no pasar el tiempo por parametro, el mismo tendra un valor de medio segundo
@@ -302,7 +302,7 @@ class Funciones_Globales:
             raise
         
     #13- Función para hacer click
-    def hacer_click_en_elemento(self, selector, texto_esperado= None, nombre_base, directorio, timeout_ms: int = 10000):
+    def hacer_click_en_elemento(self, selector, nombre_base, directorio, texto_esperado= None, timeout_ms: int = 10000):
         try:
             # Resaltar el elemento (útil para depuración visual)
             selector.highlight()
@@ -316,14 +316,68 @@ class Funciones_Globales:
             # Validar texto solo si se proporciona
             if texto_esperado:
                 expect(selector).to_contain_text(texto_esperado, timeout=timeout_ms)
-                self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
                 print(f"✅ El elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
 
             # Hacer click en el elemento
             selector.click(timeout=timeout_ms) # El click también puede tener un timeout
+            self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
             print(f"✅ Click realizado exitosamente en el elemento con selector '{selector}'.")
 
         except Exception as e:
             print(f"❌ Error al intentar hacer click en el elemento con selector '{selector}'. Error: {e}")
+            # Es buena práctica relanzar la excepción para que la prueba falle
+            raise
+
+    #14- Función para hacer click
+    def hacer_doble_click_en_elemento(self, selector, nombre_base, directorio, texto_esperado= None, timeout_ms: int = 10000):
+        try:
+            # Resaltar el elemento (útil para depuración visual)
+            selector.highlight()
+
+            # Validaciones robustas con Playwright's 'expect'
+            # Playwright ya espera automáticamente a que el elemento sea visible y esté habilitado
+            # hasta que se cumpla el timeout, lo que elimina la necesidad de time.sleep.
+            expect(selector).to_be_visible(timeout=timeout_ms)
+            expect(selector).to_be_enabled(timeout=timeout_ms)
+
+            # Validar texto solo si se proporciona
+            if texto_esperado:
+                expect(selector).to_contain_text(texto_esperado, timeout=timeout_ms)
+                print(f"✅ El elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
+
+            # Realizar la acción de DOBLE CLICK
+            selector.dblclick(timeout=timeout_ms)
+            self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
+            print(f"✅ Doble click realizado exitosamente en el elemento con selector '{selector}'.")
+
+        except Exception as e:
+            print(f"❌ Error al intentar hacer click en el elemento con selector '{selector}'. Error: {e}")
+            # Es buena práctica relanzar la excepción para que la prueba falle
+            raise
+    
+    #14- Función para hacer hover over
+    def hacer_hover_en_elemento(self, selector, nombre_base, directorio, texto_esperado= None, timeout_ms: int = 10000) -> None:
+        try:
+            # Resaltar el elemento (útil para depuración visual)
+            selector.highlight()
+
+            # Validaciones robustas con Playwright's 'expect'
+            # Playwright ya auto-espera por estas condiciones antes del hover.
+            expect(selector).to_be_visible(timeout=timeout_ms)
+            expect(selector).to_be_enabled(timeout=timeout_ms)
+
+            # Validar texto solo si se proporciona (útil para asegurar que se hace hover sobre el elemento correcto)
+            if texto_esperado:
+                expect(selector).to_contain_text(texto_esperado, timeout=timeout_ms)
+                print(f"✅ El elemento con selector '{selector_str}' contiene el texto esperado: '{texto_esperado}'.")
+
+            # Realizar la acción de HOVER OVER
+            selector.hover(timeout=timeout_ms) # El hover también puede tener un timeout
+            print(f"✅ Hover realizado exitosamente en el elemento con selector '{selector}'.")
+
+            self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
+
+        except Exception as e:
+            print(f"❌ Error al intentar hacer hover en el elemento con selector '{selector}'. Error: {e}")
             # Es buena práctica relanzar la excepción para que la prueba falle
             raise
