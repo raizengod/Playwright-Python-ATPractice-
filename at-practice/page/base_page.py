@@ -356,7 +356,7 @@ class Funciones_Globales:
             raise
     
     #14- Función para hacer hover over
-    def hacer_hover_en_elemento(self, selector, nombre_base, directorio, texto_esperado= None, timeout_ms: int = 10000) -> None:
+    def hacer_hover_en_elemento(self, selector, nombre_base, directorio, texto_esperado= None, timeout_ms: int = 10000):
         try:
             # Resaltar el elemento (útil para depuración visual)
             selector.highlight()
@@ -369,7 +369,7 @@ class Funciones_Globales:
             # Validar texto solo si se proporciona (útil para asegurar que se hace hover sobre el elemento correcto)
             if texto_esperado:
                 expect(selector).to_contain_text(texto_esperado, timeout=timeout_ms)
-                print(f"✅ El elemento con selector '{selector_str}' contiene el texto esperado: '{texto_esperado}'.")
+                print(f"✅ El elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
 
             # Realizar la acción de HOVER OVER
             selector.hover(timeout=timeout_ms) # El hover también puede tener un timeout
@@ -381,3 +381,22 @@ class Funciones_Globales:
             print(f"❌ Error al intentar hacer hover en el elemento con selector '{selector}'. Error: {e}")
             # Es buena práctica relanzar la excepción para que la prueba falle
             raise
+        
+    #15- Función para verificar si un elemento está habilitado o deshabilitado
+    def verificar_elemento_habilitado(self, selector, nombre_base, directorio, timeout_ms: int = 10000) -> bool:
+        try:
+            # Resaltar el elemento (útil para depuración visual)
+            selector.highlight()
+
+            # Validar si el elemento está habilitado usando expect de Playwright
+            # Playwright espera automáticamente hasta que el elemento cumpla la condición
+            expect(selector).to_be_enabled(timeout=timeout_ms)
+            print(f"✅ El elemento con selector '{selector}' está habilitado.")
+            self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
+            return True
+        
+        except Exception as e:
+            print(f"❌ Error: El elemento con selector '{selector}' NO está habilitado o no se encontró dentro del tiempo esperado. Error: {e}")
+            self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
+            return False
+        
