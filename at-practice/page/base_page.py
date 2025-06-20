@@ -302,7 +302,7 @@ class Funciones_Globales:
             raise
         
     #13- Función para hacer click
-    def hacer_click_en_elemento(self, selector, texto_esperado= None, timeout_ms: int = 10000):
+    def hacer_click_en_elemento(self, selector, texto_esperado= None, nombre_base, directorio, timeout_ms: int = 10000):
         try:
             # Resaltar el elemento (útil para depuración visual)
             selector.highlight()
@@ -316,6 +316,7 @@ class Funciones_Globales:
             # Validar texto solo si se proporciona
             if texto_esperado:
                 expect(selector).to_contain_text(texto_esperado, timeout=timeout_ms)
+                self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
                 print(f"✅ El elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
 
             # Hacer click en el elemento
