@@ -328,7 +328,7 @@ class Funciones_Globales:
             # Es buena práctica relanzar la excepción para que la prueba falle
             raise
 
-    #14- Función para hacer click
+    #14- Función para hacer doble click
     def hacer_doble_click_en_elemento(self, selector, nombre_base, directorio, texto_esperado= None, timeout_ms: int = 10000):
         try:
             # Resaltar el elemento (útil para depuración visual)
