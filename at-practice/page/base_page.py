@@ -1,7 +1,7 @@
 #Importamos todo lo necesario
 import re
 import time
-from playwright.sync_api import Page, expect, Playwright, sync_playwright
+from playwright.sync_api import Page, expect, TimeoutError, PlaywrightException, Playwright, sync_playwright
 from datetime import datetime
 import os
 
@@ -25,37 +25,31 @@ class Funciones_Globales:
         ruta_completa = os.path.join(directorio, f"{nombre_archivo}.jpg")
         self.page.screenshot(path=ruta_completa)
         print(f"Captura guardada en: {ruta_completa}") # Para ver dónde se guardó
-        self.Esperar()
         
     #4- unción basica para tiempo de espera que espera recibir el parametro tiempo
     #En caso de no pasar el tiempo por parametro, el mismo tendra un valor de medio segundo
-    def Esperar(self, tiempo=0.5):
+    def esperar_fijo(self, tiempo=0.5):
         time.sleep(tiempo)
         
     #5- unción para indicar el tiempo que se tardará en hacer el scroll
-    def Scroll(self, horz, vert, tiempo=0.5): 
+    def scroll_pagina(self, horz, vert, tiempo=0.5): 
         #Usamos 'self' ya que lo tenemos inicializada en __Init__ y para que la palabra page de la función funcione es necesaria
         self.page.mouse.wheel(horz, vert)
         time.sleep(tiempo)
         
     #7- Función para rellenar campo de texto y hacer capture la imagen
-    def rellenarCampodeTexto(self, selector, texto, nombre_base, directorio, tiempo=0.5):
+    def rellenar_campo_de_texto(self, selector, texto, nombre_base, directorio, tiempo=0.5):
         try:
-            # 1. Asegurar que el elemento es visible y está habilitado.
-            expect(selector).to_be_visible(timeout=10000) # Espera hasta 10 segundos
-            expect(selector).to_be_enabled(timeout=5000)  # Espera hasta 5 segundos
-            print(f"  --> El campo '{selector}' está visible y habilitado.")
-
             # Resaltar el campo en azul para depuración visual
             selector.highlight()
-            self.tomar_captura("Antes_de_rellenar", nombre_base, directorio, directorio)
+            self.tomar_captura("Antes_de_rellenar", directorio)
 
-            # 3. Rellenar el campo de texto.
+            # Rellenar el campo de texto.
             # Playwright espera automáticamente a que el campo sea editable.
             selector.fill(texto, timeout=15000) # Espera hasta 15 segundos para la operación de llenado
             print(f"  --> Campo '{selector}' rellenado con éxito con el texto: '{texto}'.")
 
-            self.tomar_captura("Después_de_rellenar", nombre_base, directorio)
+            self.tomar_captura(nombre_base, directorio)
 
         except TimeoutError as e:
             # Captura errores cuando una aserción o una acción excede su tiempo de espera.
