@@ -1,7 +1,7 @@
 #Importamos todo lo necesario
 import re
 import time
-from playwright.sync_api import Page, expect, TimeoutError, PlaywrightException, Playwright, sync_playwright
+from playwright.sync_api import Page, expect, Error , TimeoutError, sync_playwright 
 from datetime import datetime
 import os
 
@@ -39,24 +39,24 @@ class Funciones_Globales:
         
     #6- Función para validar que un elemento es visible
     def validar_elemento_visible(self, selector, nombre_base, directorio, timeout_ms: int = 10000, resaltar: bool = True) -> bool:
-        print(f"Validando visibilidad del elemento con selector: '{selector}'")
+        print(f"\nValidando visibilidad del elemento con selector: '{selector}'")
 
         try:
             # Espera explícita para que el elemento sea visible.
-            expect(selector).to_be_visible(timeout_ms)
+            expect(selector).to_be_visible(timeout=timeout_ms) # ¡Cambio clave aquí!
             
             if resaltar:
                 selector.highlight() # Resaltar el elemento visible
                 
             self.tomar_captura(f"{nombre_base}_visible", directorio)
-            print(f"  --> ÉXITO: El elemento '{selector}' es visible en la página.")
+            print(f"\n  --> ÉXITO: El elemento '{selector}' es visible en la página.")
             return True
 
         except TimeoutError as e:
             error_msg = (
-                f"FALLO (Timeout): El elemento con selector '{selector}' NO es visible "
-                f"después de {timeout_ms / 1000} segundos.\n"
-                f"Detalles: {e}"
+                f"\nFALLO (Timeout): El elemento con selector '{selector}' NO es visible "
+                f"\ndespués de {timeout_ms / 1000} segundos.\n"
+                f"\nDetalles: {e}"
             )
             print(error_msg)
             # Toma una captura de pantalla del estado actual de la página cuando el elemento no es visible
@@ -65,21 +65,21 @@ class Funciones_Globales:
             # Si el llamador necesita que la prueba falle, debe verificar el valor de retorno.
             return False
 
-        except PlaywrightException as e:
+        except Error as e: 
             error_msg = (
-                f"FALLO (Playwright): Error de Playwright al verificar la visibilidad de '{selector}'.\n"
-                f"Posibles causas: Selector inválido, elemento desprendido del DOM.\n"
-                f"Detalles: {e}"
+                f"\nFALLO (Playwright): Error de Playwright al verificar la visibilidad de '{selector}'.\n"
+                f"\nPosibles causas: Selector inválido, elemento desprendido del DOM.\n"
+                f"\nDetalles: {e}"
             )
             print(error_msg)
             self.tomar_captura(f"{nombre_base}_error_playwright", directorio)
             # Aquí sí relanzamos, ya que es un error inesperado de Playwright, no solo que no sea visible.
             raise 
-
+        
         except Exception as e:
             error_msg = (
-                f"FALLO (Inesperado): Ocurrió un error inesperado al validar la visibilidad de '{selector}'.\n"
-                f"Detalles: {e}"
+                f"\nFALLO (Inesperado): Ocurrió un error inesperado al validar la visibilidad de '{selector}'.\n"
+                f"\nDetalles: {e}"
             )
             print(error_msg)
             self.tomar_captura(f"{nombre_base}_error_inesperado", directorio)
@@ -92,16 +92,16 @@ class Funciones_Globales:
     
     #7- Función para validar que un elemento NO es visible
     def validar_elemento_no_visible(self, selector, nombre_base, directorio, timeout: int = 5000):
-        print(f"Validando que el elemento con selector '{selector}' NO es visible.")
+        print(f"\nValidando que el elemento con selector '{selector}' NO es visible.")
         try:
             # Usamos to_be_hidden() con un timeout explícito para mayor robustez.
             # Playwright espera automáticamente por el elemento sin necesidad de time.sleep()
             expect(selector).to_be_hidden(timeout=timeout)
-            print(f"El elemento con selector '{selector}' NO es visible.")
+            print(f"\nEl elemento con selector '{selector}' NO es visible.")
             self.tomar_captura(f"{nombre_base}_fallo_no_visible", directorio)
             
         except AssertionError as e:
-            print(f"Error: El elemento con selector '{selector}' aún es visible o no se ocultó a tiempo.")
+            print(f"\nError: El elemento con selector '{selector}' aún es visible o no se ocultó a tiempo.")
             # Tomamos la captura solo si la aserción falla para depuración.
             self.tomar_captura(f"{nombre_base}_fallo_no_visible", directorio)
             raise e # Re-lanza la excepción para que el test falle.
@@ -119,7 +119,7 @@ class Funciones_Globales:
             # Usamos expect().to_be_visible() con un timeout específico.
             # El timeout de expect es más robusto que time.sleep().
             expect(selector).to_be_visible(timeout=timeout)
-            print(f"✅ Elemento con selector '{selector}' es visible.")
+            print(f"\n✅ Elemento con selector '{selector}' es visible.")
 
             # Opcional: Resaltar el elemento solo si es necesario para depuración.
             # En un entorno de CI/CD, no siempre es práctico o visible.
@@ -131,14 +131,14 @@ class Funciones_Globales:
             # Playwright ya espera implícitamente a que el texto aparezca.
             # Usamos to_contain_text() para la verificación, también con timeout.
             expect(selector).to_contain_text(texto_esperado, timeout=timeout)
-            print(f"✅ Elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
+            print(f"\n✅ Elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
 
             # 4. Capturar después de la verificación exitosa
             self.tomar_captura(nombre_base=f"{nombre_base}_despues_verificacion", directorio=directorio)
 
         except Exception as e:
             # Manejo de errores para capturar cualquier fallo durante la operación
-            print(f"❌ Error al verificar el texto para el selector '{selector}': {e}")
+            print(f"\n❌ Error al verificar el texto para el selector '{selector}': {e}")
             self.tomar_captura(f"{nombre_base}_error", directorio)
             raise  # Re-lanzar la excepción para que el test falle
         
@@ -152,28 +152,28 @@ class Funciones_Globales:
             # Rellenar el campo de texto.
             # Playwright espera automáticamente a que el campo sea editable.
             selector.fill(texto, timeout=15000) # Espera hasta 15 segundos para la operación de llenado
-            print(f"  --> Campo '{selector}' rellenado con éxito con el texto: '{texto}'.")
+            print(f"\n  --> Campo '{selector}' rellenado con éxito con el texto: '{texto}'.")
 
             self.tomar_captura(nombre_base, directorio)
 
         except TimeoutError as e:
             # Captura errores cuando una aserción o una acción excede su tiempo de espera.
             error_msg = (
-                f"ERROR (Timeout): El tiempo de espera se agotó al interactuar con '{selector}'.\n"
-                f"Posibles causas: El elemento no apareció, no fue visible/habilitado/editable a tiempo.\n"
-                f"Detalles: {e}"
+                f"\nERROR (Timeout): El tiempo de espera se agotó al interactuar con '{selector}'.\n"
+                f"\nPosibles causas: El elemento no apareció, no fue visible/habilitado/editable a tiempo.\n"
+                f"\nDetalles: {e}"
             )
             print(error_msg)
             self.tomar_captura("error_timeout", nombre_base, directorio)
             # Re-lanza la excepción para que el test principal falle y marque el paso como erróneo.
-            raise PlaywrightException(error_msg) from e
+            raise Error(error_msg) from e
 
-        except PlaywrightException as e:
+        except Error as e:
             # Captura otras excepciones generales de Playwright (ej., elemento desprendido, selector incorrecto).
             error_msg = (
-                f"ERROR (Playwright): Ocurrió un problema de Playwright al interactuar con '{selector}'.\n"
-                f"Verifica la validez del selector y el estado del elemento en el DOM.\n"
-                f"Detalles: {e}"
+                f"\nERROR (Playwright): Ocurrió un problema de Playwright al interactuar con '{selector}'.\n"
+                f"\nVerifica la validez del selector y el estado del elemento en el DOM.\n"
+                f"\nDetalles: {e}"
             )
             print(error_msg)
             self.tomar_captura("error_playwright", nombre_base, directorio)
@@ -182,8 +182,8 @@ class Funciones_Globales:
         except Exception as e:
             # Captura cualquier otra excepción inesperada que no sea de Playwright.
             error_msg = (
-                f"ERROR (Inesperado): Se produjo un error desconocido al interactuar con '{selector}'.\n"
-                f"Detalles: {e}"
+                f"\nERROR (Inesperado): Se produjo un error desconocido al interactuar con '{selector}'.\n"
+                f"\nDetalles: {e}"
             )
             print(error_msg)
             self.tomar_captura("error_inesperado", nombre_base, directorio)
@@ -192,22 +192,22 @@ class Funciones_Globales:
         finally:
             # Este bloque se ejecuta siempre, independientemente de si hubo un error o no.
             if tiempo > 0:
-                print(f"  --> Realizando espera fija de {tiempo} segundos.")
+                print(f"\n  --> Realizando espera fija de {tiempo} segundos.")
                 time.sleep(tiempo)
                 
     #10- Función para rellenar campo numérico y hacer capture la imagen
     def rellenar_campo_numerico_positivo(self, selector, valor_numerico: int | float, nombre_base, directorio, tiempo= 0.5):
-        print(f"Iniciando intento de rellenar campo con selector '{selector}' con el valor numérico POSITIVO: '{valor_numerico}'")
+        print(f"\nIniciando intento de rellenar campo con selector '{selector}' con el valor numérico POSITIVO: '{valor_numerico}'")
 
         # --- VALIDACIÓN DE NÚMERO POSITIVO ---
         if not isinstance(valor_numerico, (int, float)):
-            error_msg = f"ERROR: El valor proporcionado '{valor_numerico}' no es un tipo numérico (int o float)."
+            error_msg = f"\nERROR: El valor proporcionado '{valor_numerico}' no es un tipo numérico (int o float)."
             print(error_msg)
             self.tomar_captura(f"{nombre_base}_error_valor_no_numerico", directorio)
             raise ValueError(error_msg)
 
         if valor_numerico < 0:
-            error_msg = f"ERROR: El valor numérico '{valor_numerico}' no es positivo. Se esperaba un número mayor o igual a cero."
+            error_msg = f"\nERROR: El valor numérico '{valor_numerico}' no es positivo. Se esperaba un número mayor o igual a cero."
             print(error_msg)
             self.tomar_captura(f"{nombre_base}_error_valor_negativo", directorio)
             raise ValueError(error_msg)
@@ -215,8 +215,6 @@ class Funciones_Globales:
         # Convertir el valor numérico a cadena para el método fill()
         valor_a_rellenar_str = str(valor_numerico)
         # --- FIN DE VALIDACIÓN ---
-
-        locator = self.page.locator(selector) # Instanciar el locator correctamente
 
         try:
             # Resaltar el campo en azul para depuración visual
@@ -226,25 +224,25 @@ class Funciones_Globales:
 
             # Rellenar el campo de texto.
             selector.fill(valor_a_rellenar_str)
-            print(f"  --> Campo '{selector}' rellenado con éxito con el valor: '{valor_a_rellenar_str}'.")
+            print(f"\n  --> Campo '{selector}' rellenado con éxito con el valor: '{valor_a_rellenar_str}'.")
 
             self.tomar_captura(f"{nombre_base}_despues_de_rellenar", directorio)
 
         except TimeoutError as e:
             error_msg = (
-                f"ERROR (Timeout): El tiempo de espera se agotó al interactuar con '{selector}'.\n"
-                f"Posibles causas: El elemento no apareció, no fue visible/habilitado/editable a tiempo.\n"
-                f"Detalles: {e}"
+                f"\nERROR (Timeout): El tiempo de espera se agotó al interactuar con '{selector}'.\n"
+                f"\nPosibles causas: El elemento no apareció, no fue visible/habilitado/editable a tiempo.\n"
+                f"\nDetalles: {e}"
             )
             print(error_msg)
             self.tomar_captura(f"{nombre_base}_error_timeout", directorio)
-            raise PlaywrightException(error_msg) from e
+            raise Error(error_msg) from e
 
-        except PlaywrightException as e:
+        except Error as e:
             error_msg = (
-                f"ERROR (Playwright): Ocurrió un problema de Playwright al interactuar con '{selector}'.\n"
-                f"Verifica la validez del selector y el estado del elemento en el DOM.\n"
-                f"Detalles: {e}"
+                f"\nERROR (Playwright): Ocurrió un problema de Playwright al interactuar con '{selector}'.\n"
+                f"\nVerifica la validez del selector y el estado del elemento en el DOM.\n"
+                f"\nDetalles: {e}"
             )
             print(error_msg)
             self.tomar_captura(f"{nombre_base}_error_playwright", directorio)
@@ -252,9 +250,9 @@ class Funciones_Globales:
 
         except TypeError as e:
             error_msg = (
-                f"ERROR (TypeError): El selector proporcionado no es un objeto Locator válido.\n"
-                f"Asegúrate de pasar un objeto locator o una cadena para que sea convertido a locator.\n"
-                f"Detalles: {e}"
+                f"\nERROR (TypeError): El selector proporcionado no es un objeto Locator válido.\n"
+                f"\nAsegúrate de pasar un objeto locator o una cadena para que sea convertido a locator.\n"
+                f"\nDetalles: {e}"
             )
             print(error_msg)
             self.tomar_captura(f"{nombre_base}_error_tipo_selector", directorio)
@@ -262,8 +260,8 @@ class Funciones_Globales:
 
         except Exception as e:
             error_msg = (
-                f"ERROR (Inesperado): Se produjo un error desconocido al interactuar con '{selector}'.\n"
-                f"Detalles: {e}"
+                f"\nERROR (Inesperado): Se produjo un error desconocido al interactuar con '{selector}'.\n"
+                f"\nDetalles: {e}"
             )
             print(error_msg)
             self.tomar_captura(f"{nombre_base}_error_inesperado", directorio)
@@ -271,7 +269,7 @@ class Funciones_Globales:
 
         finally:
             if tiempo > 0:
-                print(f"  --> Realizando espera fija de {tiempo} segundos.")
+                print(f"\n  --> Realizando espera fija de {tiempo} segundos.")
                 time.sleep(tiempo)
                 
     #11- Función para validar titulo de una página
@@ -279,12 +277,12 @@ class Funciones_Globales:
         try:
             # Usa el 'expect' de Playwright con un timeout para una espera robusta
             expect(self.page).to_have_title(titulo_esperado, timeout=timeout_ms)
-            print(f"✅ Título de la página '{titulo_esperado}' validado exitosamente.")
+            print(f"\n✅ Título de la página '{titulo_esperado}' validado exitosamente.")
            
             self.tomar_captura(nombre_base, directorio)
 
         except Exception as e:
-            print(f"❌ Error al validar el título o tomar la captura: {e}")
+            print(f"\n❌ Error al validar el título o tomar la captura: {e}")
             # Opcionalmente, puedes relanzar la excepción si quieres que la prueba falle
             raise
     
@@ -294,10 +292,10 @@ class Funciones_Globales:
             # Usa 'expect' de Playwright con un timeout para una espera robusta.
             # to_have_url ya espera automáticamente y reintenta.
             expect(self.page).to_have_url(re.compile(patron_url), timeout=timeout_ms)
-            print(f"✅ URL '{self.page.url}' validada exitosamente con el patrón: '{patron_url}'.")
+            print(f"\n✅ URL '{self.page.url}' validada exitosamente con el patrón: '{patron_url}'.")
             
         except Exception as e:
-            print(f"❌ Error al validar la URL. URL actual: '{self.page.url}', Patrón esperado: '{patron_url}'. Error: {e}")
+            print(f"\n❌ Error al validar la URL. URL actual: '{self.page.url}', Patrón esperado: '{patron_url}'. Error: {e}")
             # Es buena práctica relanzar la excepción para que la prueba falle si la URL no coincide
             raise
         
@@ -316,15 +314,15 @@ class Funciones_Globales:
             # Validar texto solo si se proporciona
             if texto_esperado:
                 expect(selector).to_contain_text(texto_esperado, timeout=timeout_ms)
-                print(f"✅ El elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
+                print(f"\n✅ El elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
 
             # Hacer click en el elemento
             selector.click(timeout=timeout_ms) # El click también puede tener un timeout
             self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
-            print(f"✅ Click realizado exitosamente en el elemento con selector '{selector}'.")
+            print(f"\n✅ Click realizado exitosamente en el elemento con selector '{selector}'.")
 
         except Exception as e:
-            print(f"❌ Error al intentar hacer click en el elemento con selector '{selector}'. Error: {e}")
+            print(f"\n❌ Error al intentar hacer click en el elemento con selector '{selector}'. Error: {e}")
             # Es buena práctica relanzar la excepción para que la prueba falle
             raise
 
@@ -343,15 +341,15 @@ class Funciones_Globales:
             # Validar texto solo si se proporciona
             if texto_esperado:
                 expect(selector).to_contain_text(texto_esperado, timeout=timeout_ms)
-                print(f"✅ El elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
+                print(f"\n✅ El elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
 
             # Realizar la acción de DOBLE CLICK
             selector.dblclick(timeout=timeout_ms)
             self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
-            print(f"✅ Doble click realizado exitosamente en el elemento con selector '{selector}'.")
+            print(f"\n✅ Doble click realizado exitosamente en el elemento con selector '{selector}'.")
 
         except Exception as e:
-            print(f"❌ Error al intentar hacer click en el elemento con selector '{selector}'. Error: {e}")
+            print(f"\n❌ Error al intentar hacer click en el elemento con selector '{selector}'. Error: {e}")
             # Es buena práctica relanzar la excepción para que la prueba falle
             raise
     
@@ -369,16 +367,16 @@ class Funciones_Globales:
             # Validar texto solo si se proporciona (útil para asegurar que se hace hover sobre el elemento correcto)
             if texto_esperado:
                 expect(selector).to_contain_text(texto_esperado, timeout=timeout_ms)
-                print(f"✅ El elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
+                print(f"\n✅ El elemento con selector '{selector}' contiene el texto esperado: '{texto_esperado}'.")
 
             # Realizar la acción de HOVER OVER
             selector.hover(timeout=timeout_ms) # El hover también puede tener un timeout
-            print(f"✅ Hover realizado exitosamente en el elemento con selector '{selector}'.")
+            print(f"\n✅ Hover realizado exitosamente en el elemento con selector '{selector}'.")
 
             self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
 
         except Exception as e:
-            print(f"❌ Error al intentar hacer hover en el elemento con selector '{selector}'. Error: {e}")
+            print(f"\n❌ Error al intentar hacer hover en el elemento con selector '{selector}'. Error: {e}")
             # Es buena práctica relanzar la excepción para que la prueba falle
             raise
         
@@ -391,12 +389,12 @@ class Funciones_Globales:
             # Validar si el elemento está habilitado usando expect de Playwright
             # Playwright espera automáticamente hasta que el elemento cumpla la condición
             expect(selector).to_be_enabled(timeout=timeout_ms)
-            print(f"✅ El elemento con selector '{selector}' está habilitado.")
+            print(f"\n✅ El elemento con selector '{selector}' está habilitado.")
             self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
             return True
         
         except Exception as e:
-            print(f"❌ Error: El elemento con selector '{selector}' NO está habilitado o no se encontró dentro del tiempo esperado. Error: {e}")
+            print(f"\n❌ Error: El elemento con selector '{selector}' NO está habilitado o no se encontró dentro del tiempo esperado. Error: {e}")
             self.tomar_captura(nombre_base, directorio) # Llama a la función de captura
             return False
         

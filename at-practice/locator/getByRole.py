@@ -22,7 +22,7 @@ class RoleLocatorsPage:
     en este caso usamos el locator CSS y el role"""
     @property
     def labelDescripcion(self):
-        return self.page.locator("#role-locators > p").get_by_role("paragraph")
+        return self.page.locator("#role-locators > p")
     
     #Selector label button
     @property
